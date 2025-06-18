@@ -1,8 +1,28 @@
 #include <ArduinoJson.h>
 
+const int NO_MULTIPLEXER = -1;
+
+typedef struct {
+  int multiplexerPin;
+  int analogPin;
+  int id;
+} SensorInput;
+
 const int BAUD = 9600;
-const int SENSOR_PINS[] = {1,2,3};
-const int NUM_SENSOR_PINS = sizeof(SENSOR_PINS) / sizeof(int);
+const SensorInput SENSOR_INPUTS[] = {{
+  .multiplexerPin = NO_MULTIPLEXER,
+  .analogPin = 1,
+  .id = 1001,
+}, {
+  .multiplexerPin = NO_MULTIPLEXER,
+  .analogPin = 2,
+  .id = 1002,
+}, {
+  .multiplexerPin = NO_MULTIPLEXER,
+  .analogPin = 3,
+  .id = 1003,
+}};
+const int NUM_SENSOR_INPUTS = sizeof(SENSOR_INPUTS) / sizeof(SensorInput);
 const int LOOP_DELAY_MILLIS = 100;
 
 void setup() {
@@ -10,29 +30,29 @@ void setup() {
 }
 
 typedef struct {
-  int fromPin;
+  SensorInput fromInput;
   int readingValue;
-} PinReading;
+} InputReading;
 
 
 void loop() {
- PinReading readings[NUM_SENSOR_PINS];
-  for (int i = 0; i < NUM_SENSOR_PINS; i++) {
-    int pin = SENSOR_PINS[i];
-    int value = analogRead(pin);
-    readings[i] = PinReading{
-      .fromPin = pin,
+  InputReading readings[NUM_SENSOR_INPUTS];
+  for (int i = 0; i < NUM_SENSOR_INPUTS; i++) {
+    SensorInput input = SENSOR_INPUTS[i];
+    // TODO: Handle reading from multiplexers.
+    int value = analogRead(input.analogPin);
+    readings[i] = InputReading{
+      .fromInput = input,
       .readingValue = value,
     };
   }
 
   JsonDocument doc;
   doc["upt"] = millis();
-  for (int i = 0; i < NUM_SENSOR_PINS; i++) {
-    PinReading reading = readings[i];
-    String label = String("pin_");
-    label += String(reading.fromPin);
-    doc[label] = reading.readingValue;
+  for (int i = 0; i < NUM_SENSOR_INPUTS; i++) {
+    InputReading reading = readings[i];
+    doc["sensorData"][i]["name"] = String("input_") + String(reading.fromInput.id);
+    doc["sensorData"][i]["value"] = reading.readingValue;
   }
   serializeJson(doc, Serial);
   Serial.println();
