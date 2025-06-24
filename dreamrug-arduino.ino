@@ -15,6 +15,10 @@ typedef struct {
 const int BAUD = 9600;
 const SensorInput SENSOR_INPUTS[] = {{
   .multiplexerPin = NO_MULTIPLEXER,
+  .analogPin = 0,
+  .id = 1000,
+}, {
+  .multiplexerPin = NO_MULTIPLEXER,
   .analogPin = 1,
   .id = 1001,
 }, {
@@ -41,10 +45,6 @@ const SensorInput SENSOR_INPUTS[] = {{
   .multiplexerPin = NO_MULTIPLEXER,
   .analogPin = 7,
   .id = 1007,
-}, {
-  .multiplexerPin = NO_MULTIPLEXER,
-  .analogPin = 0,
-  .id = 1000,
 }};
 const int NUM_SENSOR_INPUTS = sizeof(SENSOR_INPUTS) / sizeof(SensorInput);
 const int LOOP_DELAY_MILLIS = 100;
@@ -81,7 +81,11 @@ void loop() {
     doc["sensorData"][i]["value"] = reading.readingValue;
   }
   serializeJson(doc, Serial);
+  // This println seems to be necessary even with the flush call.
+  // Otherwise, `cat /dev/...` seems to hang.
+  // The downstream handler should just skip any blank lines.
   Serial.println();
+  Serial.flush();
   delay(LOOP_DELAY_MILLIS);
 }
 
