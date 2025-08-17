@@ -42,11 +42,11 @@ const SensorInput SENSOR_INPUTS[] = {{
   .id = 1005
 }, {
   .multiplexerPin = NO_MULTIPLEXER,
-  .analogPin = D12, // TODO: is this a valid analog pin on the ESP32-S3?
+  .analogPin = D5,
   .id = 1006,
 }, {
   .multiplexerPin = NO_MULTIPLEXER,
-  .analogPin = D13, // TODO: is this a valid analog pin on the ESP32-S3?
+  .analogPin = D6,
   .id = 1007,
 }
 #endif
