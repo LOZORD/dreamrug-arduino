@@ -16,37 +16,37 @@ typedef struct {
 
 const SensorInput SENSOR_INPUTS[] = {{
   .multiplexerPin = NO_MULTIPLEXER,
-  .analogPin = 0,
+  .analogPin = A0,
   .id = 1000,
 },
 #ifndef SOLO_PIN
 {
   .multiplexerPin = NO_MULTIPLEXER,
-  .analogPin = 1,
+  .analogPin = A1,
   .id = 1001,
 }, {
   .multiplexerPin = NO_MULTIPLEXER,
-  .analogPin = 2,
+  .analogPin = A2,
   .id = 1002,
 }, {
   .multiplexerPin = NO_MULTIPLEXER,
-  .analogPin = 3,
+  .analogPin = A3,
   .id = 1003,
 }, {
   .multiplexerPin = NO_MULTIPLEXER,
-  .analogPin = 4,
+  .analogPin = A4,
   .id = 1004,
 }, {
   .multiplexerPin = NO_MULTIPLEXER,
-  .analogPin = 5,
+  .analogPin = A5,
   .id = 1005
 }, {
   .multiplexerPin = NO_MULTIPLEXER,
-  .analogPin = 6,
+  .analogPin = D12, // TODO: is this a valid analog pin on the ESP32-S3?
   .id = 1006,
 }, {
   .multiplexerPin = NO_MULTIPLEXER,
-  .analogPin = 7,
+  .analogPin = D13, // TODO: is this a valid analog pin on the ESP32-S3?
   .id = 1007,
 }
 #endif
