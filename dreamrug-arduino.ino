@@ -1,3 +1,5 @@
+#define BAUD 115200
+#define LOOP_DELAY_MILLIS 100
 #include <ArduinoJson.h>
 
 const int NO_MULTIPLEXER = -1;
@@ -12,12 +14,13 @@ typedef struct {
   int id;
 } SensorInput;
 
-const int BAUD = 9600;
 const SensorInput SENSOR_INPUTS[] = {{
   .multiplexerPin = NO_MULTIPLEXER,
   .analogPin = 0,
   .id = 1000,
-}, {
+},
+#ifndef SOLO_PIN
+{
   .multiplexerPin = NO_MULTIPLEXER,
   .analogPin = 1,
   .id = 1001,
@@ -45,9 +48,10 @@ const SensorInput SENSOR_INPUTS[] = {{
   .multiplexerPin = NO_MULTIPLEXER,
   .analogPin = 7,
   .id = 1007,
-}};
+}
+#endif
+};
 const int NUM_SENSOR_INPUTS = sizeof(SENSOR_INPUTS) / sizeof(SensorInput);
-const int LOOP_DELAY_MILLIS = 100;
 
 void setup() {
   Serial.begin(BAUD);
@@ -88,5 +92,4 @@ void loop() {
   Serial.flush();
   delay(LOOP_DELAY_MILLIS);
 }
-
 
