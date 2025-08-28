@@ -1,5 +1,6 @@
 #define BAUD 115200
 #define LOOP_DELAY_MILLIS 100
+#define READING_MAX 4095
 #include <ArduinoJson.h>
 
 const int NO_MULTIPLEXER = -1;
@@ -70,6 +71,9 @@ void loop() {
       // TODO: Handle reading from multiplexers.
       continue;
     }
+    // TODO: consider mapping the reading's value to a [0, 1024) range (or similar).
+    // This is useful since we have the #def'd constant now.
+    // It might be worth it to do _nothing_ since using [0, 4095) gives higher fidelity.
     int value = analogRead(input.analogPin);
     readings[i] = InputReading{
       .fromInput = input,
