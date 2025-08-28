@@ -42,11 +42,11 @@ const SensorInput SENSOR_INPUTS[] = {{
   .id = 1005
 }, {
   .multiplexerPin = NO_MULTIPLEXER,
-  .analogPin = D5,
+  .analogPin = GPIO_NUM_5,
   .id = 1006,
 }, {
   .multiplexerPin = NO_MULTIPLEXER,
-  .analogPin = D6,
+  .analogPin = GPIO_NUM_6,
   .id = 1007,
 }
 #endif
