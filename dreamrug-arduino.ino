@@ -3,6 +3,15 @@
 #define READING_MAX 4095
 #define WIFI_POLL_MILLIS 500
 #define WIFI_PORT 80
+#define NUM_WIFI_CLIENTS 4
+
+// To have clients connect, I recommend using the command:
+// $ stdbuf -oL nc <ARDUINO_IP> <WIFI_PORT>
+// That way, netcat won't do "efficient buffering", which will stagger the output
+// and make it less interactive.
+// By using stdbuf, the output will be line-buffered instead, which is in-line
+// (pun intended) with the lines of JSON that we're sending.
+
 #include <ArduinoJson.h>
 #include <WiFi.h>
 
@@ -63,6 +72,10 @@ const SensorInput SENSOR_INPUTS[] = {{
 };
 const int NUM_SENSOR_INPUTS = sizeof(SENSOR_INPUTS) / sizeof(SensorInput);
 
+// The global array of WiFi clients, allowing us to broadcast to multiple clients.
+// Clients are added to the array wherever a spot is available.
+WiFiClient clients[NUM_WIFI_CLIENTS];
+
 // Our server instance.
 // IDEA: instead of having clients poll this server, maybe we should push updates to them instead?
 WiFiServer server(WIFI_PORT);
@@ -116,15 +129,20 @@ void loop() {
   Serial.println();
   Serial.flush();
 
-  WiFiClient client;
-  while(client = server.available()) {
-    Serial.print("# Got client: ");
-    Serial.print(client.remoteIP());
-    Serial.println();
-    // TODO: update this to send the JSON payload.
-    client.println("Howdy there friend!\n\n");
-    client.stop();
+  int added = scanForNewClients();
+  if (added > 0) {
+    Serial.print("# Successfully added ");
+    Serial.print(added);
+    Serial.println(" clients.");
+  } else if (added == 0) {
+    // No new clients added. Don't log spam.
+  } else {
+    Serial.print("# Failed to add ");
+    Serial.print(-added);
+    Serial.println(" clients. Client list likely full.");
   }
+
+  sendToClients(doc);
 
   delay(LOOP_DELAY_MILLIS);
 }
@@ -172,4 +190,57 @@ void startServer() {
   Serial.println("# Starting up server");
   server.begin();
   Serial.println("# Server started, waiting for clients");
+}
+
+int scanForNewClients() {
+  int added = 0;
+  int rejected = 0;
+  WiFiClient newClient;
+  // It is a little dubious to assume that multiple clients will connect within
+  // the same main Arduino polling loop, but this feels like the right way to
+  // do it for now.
+  while (newClient = server.available()) {
+    Serial.print("# Attempting to add new client: ");
+    Serial.print(newClient.remoteIP());
+    Serial.println();
+
+    bool addedClient = false;
+
+    for (int i = 0; i < NUM_WIFI_CLIENTS; i++) {
+      if (!clients[i].connected()) {
+        // Found an empty slot. Assign, increment added and move on.
+        clients[i] = newClient;
+        added++;
+        addedClient = true;
+        Serial.println("# Client added.");
+        break;
+      }
+    }
+
+    if (!addedClient) {
+      // If we finished the loop and never added the client, the list is full.
+      // Reject the client and count it.
+      Serial.println("# Client list full. Rejecting client.");
+      newClient.stop();
+      rejected++;
+    }
+  }
+
+  // Prioritize reporting failures. If we rejected anyone, return the negative count.
+  if (rejected > 0) {
+    return -rejected;
+  }
+  
+  // Otherwise, just return the number of clients we successfully added.
+  return added; 
+}
+
+void sendToClients(const JsonDocument& doc) {
+  for (int i = 0; i < NUM_WIFI_CLIENTS; i++) {
+    WiFiClient& client = clients[i];
+    if (client.connected()) {
+      serializeJson(doc, client);
+      client.println();
+    }
+  }
 }
